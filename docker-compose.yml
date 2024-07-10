@@ -1,0 +1,14 @@
+services:
+  project_docker:
+    container_name: "coursework_mod006203_st_server"
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: "coursework_mod006203_st_image"
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    ports:
+      - "8501:8501"
+    entrypoint: ["streamlit", "run"]
+    command: ["main.py"]
