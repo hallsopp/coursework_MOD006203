@@ -12,9 +12,12 @@ down:
 	docker kill ${CONTAINER_NAME}
 	docker rm ${CONTAINER_NAME}
 
-clean:
+cleanup:
+	make prune
+	docker image rm ${IMAGE_NAME}
+
+prune:
 	make down
 	docker container prune
 	docker image prune
 	docker network prune
-	docker image rm ${IMAGE_NAME}
