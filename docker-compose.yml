@@ -12,3 +12,14 @@ services:
       - "8501:8501"
     entrypoint: ["streamlit", "run"]
     command: ["main.py"]
+
+  project_docker_bash:
+    container_name: "coursework_mod006203_st_bash"
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: "coursework_mod006203_st_image"
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    entrypoint: ["/bin/bash"]
