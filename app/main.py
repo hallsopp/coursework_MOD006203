@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import lib
 
 # Define a function to load the data and set global variables
@@ -33,6 +34,10 @@ def wgcna():
         return
 
     tpm = st.session_state.tpm
+    counts_transposed = tpm.T
+    counts_transposed.columns = counts_transposed.iloc[0]
+    counts_transposed = counts_transposed.drop(counts_transposed.index[0])
+    counts_transposed = counts_transposed.apply(pd.to_numeric, errors='coerce')
 
     wgcna = lib.init_wgcna(tpm)
 
