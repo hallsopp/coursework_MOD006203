@@ -25,7 +25,7 @@ RUN apt-get update && \
 
 RUN R -e "install.packages('BiocManager', repos='http://cran.rstudio.com/')" && \
     R -e "BiocManager::install('DESeq2')" && \
-    R -e "BiocManager::install('biomaRt')" && \
+    R -e "install.packages('dplyr')"
 
-    RUN pip install h5py # only works if installed here..?
+RUN pip install h5py # only works if installed here..?
 RUN pip install -r requirements.txt
