@@ -1,0 +1,155 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 600px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "gainsboro", "id": "2210409E12Rik", "label": "2210409E12Rik", "shape": "dot", "title": "2210409E12Rik"}, {"color": "maroon", "id": "Clca6", "label": "Clca6", "shape": "dot", "title": "Clca6"}, {"color": "gainsboro", "id": "Cntnap2", "label": "Cntnap2", "shape": "dot", "title": "Cntnap2"}, {"color": "gainsboro", "id": "Dhx29", "label": "Dhx29", "shape": "dot", "title": "Dhx29"}, {"color": "maroon", "id": "Gja1", "label": "Gja1", "shape": "dot", "title": "Gja1"}, {"color": "gainsboro", "id": "Gm10621", "label": "Gm10621", "shape": "dot", "title": "Gm10621"}, {"color": "gainsboro", "id": "Grid2", "label": "Grid2", "shape": "dot", "title": "Grid2"}, {"color": "gainsboro", "id": "Hnrnpul1", "label": "Hnrnpul1", "shape": "dot", "title": "Hnrnpul1"}, {"color": "maroon", "id": "Nt5dc2", "label": "Nt5dc2", "shape": "dot", "title": "Nt5dc2"}, {"color": "maroon", "id": "Perp", "label": "Perp", "shape": "dot", "title": "Perp"}, {"color": "maroon", "id": "Plk2", "label": "Plk2", "shape": "dot", "title": "Plk2"}, {"color": "maroon", "id": "Prps2", "label": "Prps2", "shape": "dot", "title": "Prps2"}, {"color": "maroon", "id": "Rian", "label": "Rian", "shape": "dot", "title": "Rian"}, {"color": "gainsboro", "id": "Slc20a1", "label": "Slc20a1", "shape": "dot", "title": "Slc20a1"}, {"color": "gainsboro", "id": "Slc25a20", "label": "Slc25a20", "shape": "dot", "title": "Slc25a20"}, {"color": "gainsboro", "id": "Slc7a3", "label": "Slc7a3", "shape": "dot", "title": "Slc7a3"}, {"color": "gainsboro", "id": "Tfrc", "label": "Tfrc", "shape": "dot", "title": "Tfrc"}, {"color": "maroon", "id": "Tmem47", "label": "Tmem47", "shape": "dot", "title": "Tmem47"}, {"color": "maroon", "id": "Vezf1", "label": "Vezf1", "shape": "dot", "title": "Vezf1"}, {"color": "maroon", "id": "Wls", "label": "Wls", "shape": "dot", "title": "Wls"}]);
+                  edges = new vis.DataSet([{"from": "Cntnap2", "to": "Tfrc", "weight": 0.23236574227989334}, {"from": "Tfrc", "to": "Grid2", "weight": 0.22525615186003375}, {"from": "Slc7a3", "to": "Dhx29", "weight": 0.21946368872262517}, {"from": "Cntnap2", "to": "Grid2", "weight": 0.21715347559826997}, {"from": "Tfrc", "to": "Dhx29", "weight": 0.21236701132700858}, {"from": "Slc7a3", "to": "Slc25a20", "weight": 0.20598246474723925}, {"from": "Cntnap2", "to": "Dhx29", "weight": 0.20512451689866223}, {"from": "Cntnap2", "to": "Slc7a3", "weight": 0.1978938062431736}, {"from": "Slc7a3", "to": "Slc20a1", "weight": 0.19665810700228595}, {"from": "Slc7a3", "to": "Tfrc", "weight": 0.19572799872740382}, {"from": "Tfrc", "to": "Slc20a1", "weight": 0.1956697606530195}, {"from": "Dhx29", "to": "Slc20a1", "weight": 0.19496905922997151}, {"from": "Cntnap2", "to": "Slc20a1", "weight": 0.19244015950807025}, {"from": "Cntnap2", "to": "Gm10621", "weight": 0.19084765798657669}, {"from": "Slc7a3", "to": "Hnrnpul1", "weight": 0.18485256584853718}, {"from": "Slc7a3", "to": "2210409E12Rik", "weight": 0.18061829838661886}, {"from": "Tfrc", "to": "Slc25a20", "weight": 0.17764962974502604}, {"from": "Slc25a20", "to": "2210409E12Rik", "weight": 0.17561846359443822}, {"from": "Cntnap2", "to": "Slc25a20", "weight": 0.17422267988195342}, {"from": "Slc20a1", "to": "Slc25a20", "weight": 0.17237544457450793}, {"from": "Slc7a3", "to": "Grid2", "weight": 0.17216636430488982}, {"from": "Slc20a1", "to": "Hnrnpul1", "weight": 0.17213325380948583}, {"from": "Slc20a1", "to": "Grid2", "weight": 0.17034937146555187}, {"from": "Tfrc", "to": "Gm10621", "weight": 0.17030141315209904}, {"from": "Slc20a1", "to": "2210409E12Rik", "weight": 0.16993632299383027}, {"from": "Dhx29", "to": "Slc25a20", "weight": 0.16688953735140674}, {"from": "Slc7a3", "to": "Gm10621", "weight": 0.1667400034866121}, {"from": "Dhx29", "to": "Grid2", "weight": 0.16236023788516354}, {"from": "Cntnap2", "to": "Hnrnpul1", "weight": 0.15959033105087544}, {"from": "Gm10621", "to": "Dhx29", "weight": 0.15740369348321204}, {"from": "Tfrc", "to": "Hnrnpul1", "weight": 0.1567846514025357}, {"from": "Hnrnpul1", "to": "2210409E12Rik", "weight": 0.15452739761264483}, {"from": "Dhx29", "to": "2210409E12Rik", "weight": 0.15306672959803158}, {"from": "Gm10621", "to": "Grid2", "weight": 0.14764433377486227}, {"from": "Gm10621", "to": "Slc20a1", "weight": 0.1469691480965321}, {"from": "Perp", "to": "Gja1", "weight": 0.14690140765273255}, {"from": "Hnrnpul1", "to": "Slc25a20", "weight": 0.14638916848834127}, {"from": "Cntnap2", "to": "2210409E12Rik", "weight": 0.1447685495505541}, {"from": "Clca6", "to": "Rian", "weight": 0.14382407190042365}, {"from": "Perp", "to": "Prps2", "weight": 0.1430515466698986}, {"from": "Tfrc", "to": "2210409E12Rik", "weight": 0.1410840290593622}, {"from": "Dhx29", "to": "Hnrnpul1", "weight": 0.13936716776404973}, {"from": "Clca6", "to": "Gja1", "weight": 0.1381158383177341}, {"from": "Rian", "to": "Perp", "weight": 0.13547430618309395}, {"from": "Slc25a20", "to": "Grid2", "weight": 0.134704914400286}, {"from": "Gm10621", "to": "Hnrnpul1", "weight": 0.13384981597134038}, {"from": "Gm10621", "to": "Slc25a20", "weight": 0.13381227706638085}, {"from": "Clca6", "to": "Perp", "weight": 0.1317935455408478}, {"from": "Rian", "to": "Gja1", "weight": 0.13060212937932741}, {"from": "Clca6", "to": "Nt5dc2", "weight": 0.1290905735197382}, {"from": "Hnrnpul1", "to": "Grid2", "weight": 0.12754796627366247}, {"from": "Gm10621", "to": "2210409E12Rik", "weight": 0.1272395370364809}, {"from": "Perp", "to": "Nt5dc2", "weight": 0.12590193524196333}, {"from": "Wls", "to": "Vezf1", "weight": 0.12201565961271954}, {"from": "Clca6", "to": "Tmem47", "weight": 0.1212240292315886}, {"from": "Perp", "to": "Tmem47", "weight": 0.12079647344427498}, {"from": "Grid2", "to": "2210409E12Rik", "weight": 0.11672362766387777}, {"from": "Clca6", "to": "Plk2", "weight": 0.11651210957627932}, {"from": "Perp", "to": "Wls", "weight": 0.11629593450145087}, {"from": "Rian", "to": "Nt5dc2", "weight": 0.11588727738480538}, {"from": "Wls", "to": "Prps2", "weight": 0.1154434638472464}, {"from": "Perp", "to": "Plk2", "weight": 0.10809895775466315}, {"from": "Rian", "to": "Wls", "weight": 0.10692753496483064}, {"from": "Plk2", "to": "Wls", "weight": 0.10640047370476326}, {"from": "Rian", "to": "Vezf1", "weight": 0.10518043881054709}, {"from": "Perp", "to": "Vezf1", "weight": 0.10455335328233907}, {"from": "Nt5dc2", "to": "Prps2", "weight": 0.10286558157269533}, {"from": "Rian", "to": "Plk2", "weight": 0.10137091257588303}, {"from": "Rian", "to": "Prps2", "weight": 0.10098617898866545}, {"from": "Nt5dc2", "to": "Gja1", "weight": 0.09945341679542329}, {"from": "Clca6", "to": "Prps2", "weight": 0.09584658566597719}, {"from": "Nt5dc2", "to": "Tmem47", "weight": 0.09544716743319365}, {"from": "Clca6", "to": "Vezf1", "weight": 0.09360927771104233}, {"from": "Rian", "to": "Tmem47", "weight": 0.09321594912327513}, {"from": "Plk2", "to": "Tmem47", "weight": 0.09313337126873242}, {"from": "Gja1", "to": "Wls", "weight": 0.09170362284657743}, {"from": "Vezf1", "to": "Prps2", "weight": 0.09140921951590995}, {"from": "Gja1", "to": "Prps2", "weight": 0.0874385698280981}, {"from": "Clca6", "to": "Wls", "weight": 0.08386118540085392}, {"from": "Wls", "to": "Tmem47", "weight": 0.08309412416925462}, {"from": "Plk2", "to": "Gja1", "weight": 0.08257070826624086}, {"from": "Nt5dc2", "to": "Vezf1", "weight": 0.07988351900945079}, {"from": "Plk2", "to": "Vezf1", "weight": 0.07879551146678752}, {"from": "Gja1", "to": "Vezf1", "weight": 0.075779477459404}, {"from": "Gja1", "to": "Tmem47", "weight": 0.07524826860618186}, {"from": "Nt5dc2", "to": "Plk2", "weight": 0.07030901136090092}, {"from": "Nt5dc2", "to": "Wls", "weight": 0.07021937109015074}, {"from": "Tmem47", "to": "Prps2", "weight": 0.06828783733152792}, {"from": "Vezf1", "to": "Tmem47", "weight": 0.06259302030342079}, {"from": "Plk2", "to": "Prps2", "weight": 0.05526034888197835}, {"from": "Plk2", "to": "2210409E12Rik", "weight": 1.1829235102963721e-07}, {"from": "Plk2", "to": "Slc25a20", "weight": 2.3713014907835728e-08}, {"from": "Plk2", "to": "Hnrnpul1", "weight": 1.963005956171328e-08}, {"from": "Plk2", "to": "Slc7a3", "weight": 7.869659471738613e-09}, {"from": "Tmem47", "to": "2210409E12Rik", "weight": 6.242744790620752e-09}, {"from": "Gja1", "to": "2210409E12Rik", "weight": 4.735461845933305e-09}, {"from": "Plk2", "to": "Dhx29", "weight": 3.8975647905834344e-09}, {"from": "Gja1", "to": "Slc25a20", "weight": 2.4625210662279455e-09}, {"from": "Prps2", "to": "2210409E12Rik", "weight": 1.8346095505928714e-09}, {"from": "Prps2", "to": "Slc25a20", "weight": 8.849089452332847e-10}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

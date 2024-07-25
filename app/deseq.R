@@ -52,7 +52,5 @@ all_results <- rbind(
 
 new_col <- rownames_to_column(all_results, var = "Gene_ID")
 
-combined_results <- left_join(new_col, gene_data, by = "Gene_ID")
-
 # Save the combined results to a file
-write.table(combined_results, file = "data/DESeq2_combined_results.txt", quote = FALSE, row.names = FALSE, sep = "\t")
+write.table(new_col, file = "data/DESeq2_combined_results.txt", quote = FALSE, row.names = FALSE, sep = "\t")

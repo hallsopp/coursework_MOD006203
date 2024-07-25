@@ -1,3 +1,5 @@
 streamlit == 1.36.0
 scikit-learn == 1.5.1
-pyWGCNA == 2.0.5
+pyWGCNA == 2.1.1
+streamlit-pdf-viewer == 0.0.14
+plotly == 5.23.0
