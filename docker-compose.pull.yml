@@ -1,7 +1,7 @@
 services:
   project_docker:
     container_name: "coursework_mod006203_st_server"
-    image: "hallsopp/coursework_mod006203:new"
+    image: "hallsopp/coursework_mod006203:amd64"
     working_dir: /app
     volumes:
       - ./app:/app

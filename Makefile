@@ -1,6 +1,6 @@
 CONTAINER_NAME = coursework_mod006203_st_server
 BASH_CONTAINER_NAME = coursework_mod006203_st_bash
-IMAGE_NAME = hallsopp/coursework_mod006203:new
+IMAGE_NAME = hallsopp/coursework_mod006203:amd64
 LOCAL_IMAGE_NAME = coursework_mod006203_st_image
 
 pull:
