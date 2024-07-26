@@ -1,11 +1,13 @@
 import os
 import subprocess
+from types import FunctionType
 import pandas as pd
 import PyWGCNA
 import streamlit as st
 import numpy as np
 from scipy.integrate import odeint
-from scipy.optimize import minimize
+from scipy.optimize import minimize, OptimizeResult
+import graphviz
 
 def generate_deg() -> None:
     if os.path.exists('data/DESeq2_combined_results.csv'):
@@ -25,7 +27,7 @@ def load_data() -> tuple:
             'time': ["day_2", "day_2", "day_2", "day_2", "day_2", "day_2", "day_4", "day_4", "day_4", "day_6", "day_6", "day_6"],
             'treatment': ["control", "control", "control", "treated", "treated", "treated", "treated", "treated", "treated", "treated", "treated", "treated"]
         }),
-        pd.read_csv('data/wgcna/figures/top_20_hub_genes_maroon.csv', index_col=0)
+        pd.read_csv('data/wgcna/figures/top_20_hub_genes_maroon.csv', index_col=0),
     )
 
 def init_wgcna(expr_data:pd.DataFrame) -> PyWGCNA.WGCNA:
@@ -53,24 +55,37 @@ def initialize_data():
             st.session_state.hyp = hyp
         st.success("Data loaded successfully!")
 
-def gene_network_dynamics(y, t, adj_matrix, params):
+def gene_network_dynamics(
+    y:np.ndarray,
+    t:float,
+    adj_matrix:np.ndarray,
+    params:np.ndarray
+) -> np.ndarray:
     dydt = np.zeros(len(y))
     for i in range(len(y)):
         interaction_sum = 0
         for j in range(len(y)):
             interaction_sum += adj_matrix[i, j] * y[j]
-        dydt[i] = -params[i] * y[i] + interaction_sum
+        r_i = params[i]
+        K_i = params[len(y) + i]
+        dydt[i] = r_i * y[i] * (1 - y[i] / K_i) + interaction_sum
     return dydt
 
-def objective_function(params, adj_matrix, initial_conditions, time_points, observed_data):
-    # Integrate the differential equations
+def objective_function(
+    params:np.ndarray,
+    adj_matrix:np.ndarray,
+    initial_conditions:np.ndarray,
+    time_points:np.ndarray,
+    observed_data:pd.DataFrame
+) -> float:
     solution = integrate_model(gene_network_dynamics, initial_conditions, time_points, adj_matrix, params)
+
     # Calculate the error
     error = np.sum((solution - observed_data.values.T) ** 2)
+
     return error
 
 def calculate_median_tpm(tpm:pd.DataFrame, metadata:pd.DataFrame) -> pd.DataFrame:
-    # Create a copy of tpm to avoid modifying the original DataFrame
     tpm_copy = tpm.copy()
 
     # Check if the index is already a column to avoid duplication
@@ -87,18 +102,29 @@ def calculate_median_tpm(tpm:pd.DataFrame, metadata:pd.DataFrame) -> pd.DataFram
     median_tpm_wide.columns = [f"{time}_{treatment}" for time, treatment in median_tpm_wide.columns]
     return median_tpm_wide
 
-def optimize_params(objective_function, initial_params, adj_matrix, initial_conditions, time_points, observed_data):
+def optimize_params(
+    objective_function:FunctionType,
+    initial_params:np.ndarray,
+    adj_matrix:np.ndarray,
+    initial_conditions:np.ndarray,
+    time_points:np.ndarray,
+    observed_data:pd.DataFrame
+) -> OptimizeResult:
     result = minimize(objective_function, initial_params, args=(adj_matrix, initial_conditions, time_points, observed_data))
     return result
 
-def integrate_model(gene_network_dynamics, initial_conditions, time_points, adj_matrix, params):
+def integrate_model(
+    gene_network_dynamics:FunctionType,
+    initial_conditions:np.ndarray,
+    time_points:np.ndarray,
+    adj_matrix:np.ndarray,
+    params:np.ndarray
+):
     solution = odeint(gene_network_dynamics, initial_conditions, time_points, args=(adj_matrix, params))
     return solution
 
 def transform_df(df):
-
     melted_df = pd.melt(df, id_vars=['Gene_ID', 'Gene_name'], var_name='contrast', value_name='value')
-
     melted_df[['contrast', 'measurement']] = melted_df['contrast'].str.rsplit('.', n=1, expand=True)
 
     reshaped_df = melted_df.pivot_table(index=['Gene_ID', 'Gene_name', 'contrast'], columns='measurement', values='value', dropna=False).reset_index()
@@ -107,3 +133,18 @@ def transform_df(df):
     reshaped_df = reshaped_df.rename(columns={'log2foldchange': 'log2FoldChange', 'pvalue': 'pvalue'})
 
     return reshaped_df
+
+def create_graphviz_graph(adj_matrix):
+    graph = graphviz.Digraph()
+
+    # Add nodes
+    for node in adj_matrix.columns:
+        graph.node(node)
+
+    # Add edges with weights
+    for i, row in adj_matrix.iterrows():
+        for j, val in row.items():
+            if val != 0:  # Include only non-zero weights
+                graph.edge(i, j)
+
+    return graph

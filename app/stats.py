@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import plotly.express as px
+import lib
 
 def stats_page():
     st.title("Statistical modelling of TUNA knockdown dynamics")
@@ -9,6 +10,7 @@ def stats_page():
         st.error("Please load the data first. Head to the home page, then come back here.")
 
     deg = st.session_state.deg
+
     deg = deg.dropna(subset=["log2FoldChange", "pvalue"])
     deg["-log10(pvalue)"] = -deg["pvalue"].apply(lambda p: np.log10(p))
 
@@ -25,7 +27,12 @@ def stats_page():
         Contrasts were defined to compare the predictor variable (TUNA knockdown) against the control group for each of the \
         time points (days 2, 4 and 6). This generated a set of differentially expressed genes (DEGs) for each. Every gene, in \
         each contrast, is assigned a log2 fold change (log2FC), a p-value (based on the H0 that there is no difference between \
-        treatment and control) and a false discovery rate (FDR) adjusted p-value, to correct for multiple-testing.
+        treatment and control) and a false discovery rate (FDR) adjusted p-value, to correct for multiple-testing. The full \
+        analysis script can be found under `app/deseq.R`.
+
+        Unfortunately, there are very few genes that appear as differentially expressed and are statistically significant \
+        according to the contrast groups. This could be due to the small sample size, the high variability in the data, or the \
+        low sensitivity of the DESeq2 method. The results are displayed in the table below.
 
         ***
         """
@@ -33,6 +40,17 @@ def stats_page():
 
     st.subheader("Differentially Expressed Genes (DEGs)")
     st.data_editor(deg, use_container_width=True)
+
+    st.write(
+        """
+        ***
+
+        We can plot the results of the DESeq2 analysis in a volcano plot. This is a scatter plot that shows the log2 fold change \
+        on the x-axis and the -log10 p-value on the y-axis. The genes that are significantly differentially expressed are highlighted \
+        in red -- this is based on adjusted p-value < 0.05 and absolute log2FC > 0. The plot below shows the volcano plot for the \
+        selected contrast, feel free to change the contrast using the dropdown menu.
+        """
+    )
 
     contrasts = deg["contrast"].unique()
 
@@ -66,5 +84,101 @@ def stats_page():
         x0=-1, x1=1, y0=2, y1=2
     )
 
-    # Display the plot using Streamlit
+    fig.update_layout(
+        height=700
+    )
+
     st.plotly_chart(fig)
+
+    st.write(
+        """
+        ***
+
+        Despite low statistical significance, the volcano plot shows that there are some genes with high fold changes. \
+        These can be grouped by filtering the data based on the log2 fold change. The table below shows the \
+        genes with an aboslute fold change greater than 2 across all of the contrasts.
+        """
+    )
+
+    # Filter data based on log2 fold change
+    filtered_df = deg[abs(deg["log2FoldChange"]) > 2]
+
+    st.data_editor(filtered_df, use_container_width=True)
+
+    st.write(
+        """
+        This indicates that there are definitely some genes that are differentially expressed when TUNA is knocked down, but \
+        this specific analysis does not have the power to detect them. Further experiments could involve increasing the sample size, \
+        using a different method for differential expression analysis, or performing a different type of analysis altogether...
+
+        Next, we can look at co-expression networks to see if there are any patterns in the data that can be detected using \
+        unsupervised learning techniques.
+        """
+    )
+
+    st.write(
+        """
+        ***
+
+        #### deseq.R:
+        """
+    )
+    deseq_code = """
+    # Load the DESeq2 library
+    library(DESeq2)
+    library(tibble)
+    library(dplyr)
+
+    # Load the raw count data
+    raw_data <- read.table("data/E-GEOD-46730-raw-counts.txt", header = TRUE, row.names = 1)
+    gene_data <- read.table("data/mart_export.txt", header = TRUE, fill = TRUE) %>%
+        mutate(Gene_name = ifelse(Gene_name == "" | is.na(Gene_name), Gene_stable_ID, Gene_name)) %>%
+        rename(Gene_ID = Gene_stable_ID)
+
+    # Create the design matrix
+    design_matrix <- data.frame(
+        sample = c("SRR847690", "SRR847691", "SRR847692", "SRR847693", "SRR847694", "SRR847695", "SRR847696", "SRR847697", "SRR847698", "SRR847699", "SRR847700", "SRR847701"),
+        time = c("day_2", "day_2", "day_2", "day_2", "day_2", "day_2", "day_4", "day_4", "day_4", "day_6", "day_6", "day_6"),
+        treatment = c("control", "control", "control", "treated", "treated", "treated", "treated", "treated", "treated", "treated", "treated", "treated")
+    )
+
+    design_matrix$time <- factor(design_matrix$time)
+    design_matrix$treatment <- factor(design_matrix$treatment)
+
+    design_matrix$group <- factor(paste(design_matrix$time, design_matrix$treatment, sep = "_"))
+
+    # Convert to DESeq2 dataset
+    dds <- DESeqDataSetFromMatrix(
+        countData = raw_data,
+        colData = design_matrix,
+        design = ~group
+    )
+
+    dds$group <- relevel(dds$group, ref = "day_2_control")
+
+    # Run the DESeq2 analysis
+    dds <- DESeq(dds)
+
+    # Perform contrasts and add the contrast information to each result
+    contrast_day2 <- results(dds, contrast = c("group", "day_2_treated", "day_2_control"))
+    contrast_day2$contrast <- "day_2_treated_vs_day_2_control"
+
+    contrast_day4 <- results(dds, contrast = c("group", "day_4_treated", "day_2_control"))
+    contrast_day4$contrast <- "day_4_treated_vs_day_2_control"
+
+    contrast_day6 <- results(dds, contrast = c("group", "day_6_treated", "day_2_control"))
+    contrast_day6$contrast <- "day_6_treated_vs_day_2_control"
+
+    # Combine results into one dataframe
+    all_results <- rbind(
+        as.data.frame(contrast_day2),
+        as.data.frame(contrast_day4),
+        as.data.frame(contrast_day6)
+    )
+
+    new_col <- rownames_to_column(all_results, var = "Gene_ID")
+
+    # Save the combined results to a file
+    write.table(new_col, file = "data/DESeq2_combined_results.txt", quote = FALSE, row.names = FALSE, sep = "\t")
+    """
+    st.code(deseq_code, language="r")
