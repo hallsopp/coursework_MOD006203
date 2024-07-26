@@ -1,0 +1,11 @@
+services:
+  project_docker:
+    container_name: "coursework_mod006203_st_server"
+    image: "hallsopp/coursework_mod006203:new"
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    ports:
+      - "8501:8501"
+    entrypoint: ["streamlit", "run"]
+    command: ["main.py"]
